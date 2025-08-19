@@ -1,0 +1,83 @@
+/*
+- Region: closest to your users
+- Instance Type: Free
+5. Add Environment Variables:
+- RESEND_API_KEY: (optional, for email)
+- RESEND_FROM: e.g., dev@frusettte.com
+- INTERAKT_API_URL: (from Interakt docs)
+- INTERAKT_API_KEY: (from Interakt dashboard)
+- INTERAKT_SENDER_ID: (if required by Interakt)
+6. Deploy. Render gives you a URL like https://your-service.onrender.com
+
+
+B) Add your custom domain (optional but nice)
+--------------------------------------------
+1. In Render → your service → Settings → Custom Domains → Add `api.frusettte.com`.
+2. In your domain DNS (where frusettte.com is registered), add a CNAME:
+- Host: api
+- Target: the Render domain provided.
+3. Wait for DNS to propagate. Render will auto-issue TLS.
+
+
+C) Hook into your app (canvas)
+------------------------------
+- Set BACKEND_URL in your front-end to your Render URL or api.frusettte.com
+- The front-end calls:
+- POST `${BACKEND_URL}/support` with the ticket JSON
+- POST `${BACKEND_URL}/support/notify` with { id, email, whatsapp }
+
+
+D) Interakt (WhatsApp Business) setup
+-------------------------------------
+1. In Interakt: create an API key and find the API base URL for sending a templated message.
+2. Create/approve a template for alerting support.
+3. Put those values in INTERAKT_API_URL, INTERAKT_API_KEY, and INTERAKT_SENDER_ID if needed.
+4. Update the `waPayload` in /support/notify to match Interakt's required payload for your template.
+
+
+E) Email alerts via Resend (free dev tier)
+------------------------------------------
+1. Create a Resend account → get an API key.
+2. Verify a sender domain or use a sandbox sender.
+3. Set RESEND_API_KEY and RESEND_FROM in Render env.
+4. /support/notify will email your support address.
+
+
+F) package.json (put this in your repo)
+---------------------------------------
+{
+"name": "frusette-backend",
+"version": "1.0.0",
+"type": "module",
+"scripts": {
+"start": "node server.js",
+"dev": "node --watch server.js"
+},
+"dependencies": {
+"cors": "^2.8.5",
+"express": "^4.19.2",
+"node-fetch": "^3.3.2"
+}
+}
+
+
+G) Quick local test
+-------------------
+1. `npm install`
+2. `npm run dev`
+3. In another terminal, create a ticket:
+curl -X POST http://localhost:3000/support \
+-H "Content-Type: application/json" \
+-d '{
+"type":"out_of_zone",
+"reason":"outside_radius",
+"customer":{"name":"Aju","whatsapp":"9898989898"},
+"cart":{"items":[],"subtotal":0}
+}'
+4. Send alerts (requires env keys):
+curl -X POST http://localhost:3000/support/notify \
+-H "Content-Type: application/json" \
+-d '{ "id":"SUP000001", "email":"support@frusettte.com", "whatsapp":"+918891563482" }'
+
+
+*/
